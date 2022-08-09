@@ -1,6 +1,6 @@
 # example-app-python-psycopg3
 
-This repo has a simple CRUD Python application that uses the [`psycopg3`](https://www.psycopg.org/docs/install.html) driver to talk to a CockroachDB cluster.
+This repo has a simple CRUD Python application that uses the [`psycopg3`](https://www.psycopg.org/psycopg3/docs/) driver to talk to a CockroachDB cluster.
 
 For details on creating a CockroachDB cluster and running the code, see [this tutorial](https://www.cockroachlabs.com/docs/stable/build-a-python-app-with-cockroachdb-psycopg3.html).
 
