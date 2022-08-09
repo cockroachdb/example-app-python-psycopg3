@@ -16,7 +16,6 @@ from psycopg.rows import namedtuple_row
 
 
 def create_accounts(conn):
-    ids = []
     id1 = uuid.uuid4()
     id2 = uuid.uuid4()
     with conn.cursor() as cur:
@@ -27,10 +26,7 @@ def create_accounts(conn):
             "UPSERT INTO accounts (id, balance) VALUES (%s, 1000), (%s, 250)", (id1, id2))
         logging.debug("create_accounts(): status message: %s",
                       cur.statusmessage)
-    # conn.commit()
-    ids.append(id1)
-    ids.append(id2)
-    return ids
+    return [id1, id2]
 
 
 def delete_accounts(conn):
@@ -38,15 +34,10 @@ def delete_accounts(conn):
         cur.execute("DELETE FROM accounts")
         logging.debug("delete_accounts(): status message: %s",
                       cur.statusmessage)
-    # conn.commit()
 
 
 def print_balances(conn):
     with conn.cursor() as cur:
-        # cur.execute("SELECT id, balance FROM accounts")
-        # logging.debug("print_balances(): status message: %s",cur.statusmessage)
-        # rows = cur.fetchall()
-        # conn.commit()
         print(f"Balances at {time.asctime()}:")
         for row in cur.execute("SELECT id, balance FROM accounts"):
             print("account id: {0}  balance: ${1:2d}".format(row.id, row.balance))
@@ -73,7 +64,6 @@ def transfer_funds(conn, frm, to, amount):
                 amount, to)
         )
 
-    # conn.commit()
     logging.debug("transfer_funds(): status message: %s", cur.statusmessage)
 
 
@@ -102,9 +92,9 @@ def run_transaction(conn, op, max_retries=3):
                 logging.debug("got error: %s", e)
                 conn.rollback()
                 logging.debug("EXECUTE SERIALIZATION_FAILURE BRANCH")
-                sleep_ms = (2**retry) * 0.1 * (random.random() + 0.5)
-                logging.debug("Sleeping %s seconds", sleep_ms)
-                time.sleep(sleep_ms)
+                sleep_seconds = (2**retry) * 0.1 * (random.random() + 0.5)
+                logging.debug("Sleeping %s seconds", sleep_seconds)
+                time.sleep(sleep_seconds)
 
             except psycopg.Error as e:
                 logging.debug("got error: %s", e)
@@ -147,16 +137,9 @@ def main():
             logging.debug("got error: %s", e)
             raise e
 
-        try:
-            print_balances(conn)
-        except psycopg.OperationalError as oe:
-            logging.info("call to second print_balances failed.")
-            logging.info("error message: %s", oe)
-            raise oe
+        print_balances(conn)
 
         delete_accounts(conn)
-        # Close communication with the database.
-        # conn.close()
     except Exception as e:
         logging.fatal("database connection failed")
         logging.fatal(e)
